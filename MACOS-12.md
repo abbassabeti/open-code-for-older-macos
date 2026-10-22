@@ -27,12 +27,13 @@ install copies that directory to `~/.opencode/runtime/<version>` with a launcher
 ## Installing
 
 Prebuilt apps are published as release assets on
-[the macos-12.7 branch](https://github.com/abbassabeti/open-code-for-older-macos/releases):
+[the macos-12.7 release](https://github.com/abbassabeti/open-code-for-older-macos/releases/tag/macos-12.7):
 
 | Asset | Machine |
 | --- | --- |
 | `OpenCode-macos12.7-x64.zip` | Intel |
 | `OpenCode-macos12.7-arm64.zip` | Apple Silicon |
+| `opencode-cli-darwin-x64.tar.gz` | Intel CLI runtime, for terminal use |
 
 ```bash
 unzip OpenCode-macos12.7-x64.zip

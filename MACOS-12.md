@@ -24,7 +24,34 @@ The CLI is no longer a single executable. The desktop app spawns
 install copies that directory to `~/.opencode/runtime/<version>` with a launcher in
 `~/.opencode/bin/opencode`.
 
+## Installing
+
+Prebuilt apps are published as release assets on
+[the macos-12.7 branch](https://github.com/abbassabeti/open-code-for-older-macos/releases):
+
+| Asset | Machine |
+| --- | --- |
+| `OpenCode-macos12.7-x64.zip` | Intel |
+| `OpenCode-macos12.7-arm64.zip` | Apple Silicon |
+
+```bash
+unzip OpenCode-macos12.7-x64.zip
+mv OpenCode.app /Applications/
+xattr -dr com.apple.quarantine /Applications/OpenCode.app   # the builds are unsigned
+open /Applications/OpenCode.app
+```
+
+The app bundles its own Node runtime, so nothing has to be installed on the machine. The terminal
+client comes from the app's "Install CLI" command, which copies the runtime to
+`~/.opencode/runtime/<version>` and leaves a launcher in `~/.opencode/bin/opencode`.
+
+The terminal **UI does not work on 12.7** (see the known limits). The server and the non-interactive
+commands do: `opencode serve`, `opencode run "..."`.
+
 ## Building
+
+Building needs macOS 13 or newer: Bun, the build runtime of this repository, does not start on
+Monterey. Build on a modern Mac and copy the app over.
 
 ```bash
 bun install
@@ -32,15 +59,16 @@ script/build-macos12.sh arm64   # or: script/build-macos12.sh x64
 ```
 
 The script rebuilds fff and opentui, builds the Node CLI runtime layout, builds the Electron app,
-packages it unsigned, and audits every Mach-O it produced.
+packages it unsigned, and audits every Mach-O it produced. Rust and Zig are downloaded into the
+repository cache when they are missing, so the only prerequisite is Bun.
 
 Individual steps:
 
 ```bash
-script/build-fff-macos12.sh
+script/build-fff-macos12.sh arm64
 script/build-opentui-macos12.sh arm64
-OPENCODE_FFF_DYLIB="$PWD/packages/cli/.cache/fff/libfff_c.dylib" \
-  OPENCODE_OPENTUI_LIB="$PWD/packages/cli/.cache/opentui/libopentui.dylib" \
+OPENCODE_FFF_DYLIB="$PWD/packages/cli/.cache/fff/aarch64-apple-darwin/libfff_c.dylib" \
+  OPENCODE_OPENTUI_LIB="$PWD/packages/cli/.cache/opentui/aarch64-macos.12.0/libopentui.dylib" \
   bun packages/cli/script/build-node.ts --runtime-layout --target=darwin-arm64 --outdir=dist/node
 cd packages/desktop
 OPENCODE_CLI_TARGET=aarch64-apple-darwin OPENCODE_CLI_DIST="$PWD/../../packages/cli/dist" \
@@ -69,7 +97,5 @@ bun script/verify-macos-minos.ts packages/desktop/dist/mac-arm64/OpenCode.app
   and the server API are unaffected: neither loads the opentui library.
 - **Unsigned builds.** The packaging step here is unsigned and unnotarised, so Gatekeeper blocks the
   first launch: `xattr -dr com.apple.quarantine /Applications/OpenCode.app`.
-- **Intel needs more setup.** The x64 fff rebuild needs a Rust target for `x86_64-apple-darwin`, and
-  the x64 opentui rebuild downloads the x64 Zig toolchain.
 - **Chromium support.** Electron 43 still runs on Monterey, but Chromium no longer ships security
   fixes for that macOS version.

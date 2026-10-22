@@ -45,6 +45,8 @@ const allTargets = [
   nodeTarget("darwin", "arm64"),
   nodeTarget("win32", "arm64"),
   nodeTarget("win32", "x64"),
+  // Node's SEA has no macOS x64 build, so the runtime layout is the only way to ship Intel Macs.
+  ...(runtimeLayout ? [nodeTarget("darwin", "x64")] : []),
 ]
 const targets = requested
   ? allTargets.filter((target) => targetName(target) === requested)

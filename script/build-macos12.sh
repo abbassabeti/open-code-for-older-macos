@@ -20,7 +20,11 @@ cd "${ROOT}"
 # The published fff dylib needs macOS 13, so the fork compiles its own.
 ./script/build-fff-macos12.sh
 
+# The published opentui dylib needs macOS 13 as well, and the TUI loads it.
+./script/build-opentui-macos12.sh "${ARCH}"
+
 OPENCODE_FFF_DYLIB="${ROOT}/packages/cli/.cache/fff/libfff_c.dylib" \
+  OPENCODE_OPENTUI_LIB="${ROOT}/packages/cli/.cache/opentui/libopentui.dylib" \
   bun packages/cli/script/build-node.ts \
   --runtime-layout \
   --target="${CLI_TARGET}" \

@@ -45,9 +45,10 @@ function macSignOptions(options: CustomMacSignOptions): CustomMacSignOptions {
     optionsForFile: (file) => {
       const defaults = options.optionsForFile?.(file)
 
-      if (file !== path.join(options.app, "Contents/Resources/opencode-cli")) return defaults ?? {}
+      if (file !== path.join(options.app, "Contents/Resources/opencode-cli/node")) return defaults ?? {}
 
-      // The Bun CLI loads bun-pty's native library; Electron and its helpers do not need this exception.
+      // The bundled Node runtime loads the fff dylib and the node-pty addon, so it needs the same
+      // entitlements the Bun CLI had.
       return { ...defaults, entitlements: path.join(packageDir, "resources/entitlements.cli.plist") }
     },
   }
@@ -113,7 +114,7 @@ const getBase = (appId: string): Configuration => {
       {
         from: "resources/",
         to: "",
-        filter: ["opencode-cli", "opencode-cli.exe", "opencode-cli.version"],
+        filter: ["opencode-cli/**", "opencode-cli.version"],
       },
     ],
     afterPack: async (context) => {
@@ -128,8 +129,12 @@ const getBase = (appId: string): Configuration => {
 
       const file = await stat(cli)
 
-      if (!file.isFile() || file.size === 0) throw new Error(`Bundled CLI must be a non-empty file: ${cli}`)
-      await NativeArch.verify(cli, arch)
+      if (!file.isDirectory() || file.size === 0) throw new Error(`Bundled CLI must be a non-empty directory: ${cli}`)
+      const node = path.join(cli, "node")
+      const nodeFile = await stat(node)
+
+      if (!nodeFile.isFile() || nodeFile.size === 0) throw new Error(`Bundled CLI must contain a Node binary: ${node}`)
+      await NativeArch.verify(node, arch)
       const version = path.join(path.dirname(cli), "opencode-cli.version")
 
       if ((await stat(version)).size === 0) throw new Error(`Bundled CLI version must be a non-empty file: ${version}`)
@@ -162,6 +167,9 @@ const getBase = (appId: string): Configuration => {
     mac: {
       category: "public.app-category.developer-tools",
       icon: `resources/icons/icon.icns`,
+      // macOS 12.7 (Monterey) is the oldest system this fork supports; Electron 43 is the last
+      // Electron line that still ships binaries for it.
+      minimumSystemVersion: "12.0",
       extendInfo: {
         NSAutoFillRequiresTextContentTypeForOneTimeCodeOnMac: true,
       },

@@ -1,4 +1,4 @@
-import { chmod, copyFile, mkdtemp, rm } from "node:fs/promises"
+import { chmod, copyFile, cp, mkdtemp, rm, stat } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { Option, Schema } from "effect"
@@ -100,10 +100,23 @@ export async function downloadCliToResources(version = CLI_VERSION, dest = windo
   console.log(`Copied ${cli.package}@${version} to ${dest}`)
 }
 
-export async function copyBuiltCliToResources(root: string, dest = windowsify("resources/opencode-cli")) {
+// The fork ships the CLI as a Node runtime directory, because the Bun executable cannot start on
+// macOS 12.7 and Node's SEA has no macOS x64 build.
+export async function copyCliRuntimeToResources(root: string, dest = windowsify("resources/opencode-cli")) {
   const cli = getCurrentCli()
-  const directory = cli.package.replace("@opencode/", "")
-  await copyCliToResources(join(root, directory), dest)
+  const name = `cli-node-${cli.os === "win32" ? "windows" : cli.os}-${cli.cpu}`
+  const source = join(root, "node", name, "runtime")
+  const info = await stat(source).catch(() => undefined)
+
+  if (!info?.isDirectory()) throw new Error(`Node CLI runtime not found: ${source}`)
+
+  await rm(dest, { recursive: true, force: true })
+  await cp(source, dest, { recursive: true })
+
+  const manifest = JSON.parse(await Bun.file(join(source, "opencode-cli.json")).text()) as { version?: string }
+
+  await Bun.write(versionFile(dest), manifest.version ?? "0.0.0")
+  await prepareRuntime(dest)
 }
 
 // The package directory is an npm package: its package.json version is the string the executable
@@ -136,6 +149,21 @@ async function prepareCli(dest: string) {
   }
 
   if (process.platform === "darwin") await $`codesign --force --sign - ${dest}`
+}
+
+// The runtime directory carries the Node binary the app spawns; it needs the same ad-hoc signature
+// the Bun executable had so it loads under the hardened runtime.
+async function prepareRuntime(dest: string) {
+  const { $ } = await import("bun")
+  const node = join(dest, "node")
+
+  if (process.platform !== "win32") await chmod(node, 0o755)
+
+  if (process.platform === "win32" && process.env.GITHUB_ACTIONS === "true") {
+    await $`pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ../../script/sign-windows.ps1 ${node}`
+  }
+
+  if (process.platform === "darwin") await $`codesign --force --sign - ${node}`
 }
 
 export function windowsify(path: string) {

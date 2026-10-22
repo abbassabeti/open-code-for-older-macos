@@ -31,9 +31,18 @@ export async function collectNodeAssets(target: NodeTarget) {
       platform: target.platform,
       arch: target.arch,
       ...(target.platform === "linux" ? { libc: "glibc" as const } : {}),
-    }),
+    }).map((asset) =>
+      // The published opentui dylib is built for macOS 13; a macOS 12.7 build points this at a rebuild.
+      process.env.OPENCODE_OPENTUI_LIB && asset.key.endsWith("libopentui.dylib")
+        ? { ...asset, source: process.env.OPENCODE_OPENTUI_LIB }
+        : asset,
+    ),
     { key: target.parcelWatcherAsset, source: fileURLToPath(import.meta.resolve(target.parcelWatcherPackage)) },
-    { key: target.fffAsset, source: fileURLToPath(import.meta.resolve(target.fffPackage)) },
+    {
+      key: target.fffAsset,
+      // The published fff dylib is built for macOS 13; a macOS 12.7 build points this at a rebuild.
+      source: process.env.OPENCODE_FFF_DYLIB ?? fileURLToPath(import.meta.resolve(target.fffPackage)),
+    },
     { key: target.fffFfiAsset, source: fileURLToPath(import.meta.resolve(target.fffFfiPackage)) },
     {
       key: photonWasmAsset,

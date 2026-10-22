@@ -2,7 +2,7 @@
 
 import { spawnSync } from "node:child_process"
 import { createHash } from "node:crypto"
-import { chmod, copyFile, mkdir, mkdtemp, readFile, realpath, rename, rm, stat, writeFile } from "node:fs/promises"
+import { chmod, copyFile, cp, mkdir, mkdtemp, readFile, realpath, rename, rm, stat, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { build } from "vite"
@@ -16,7 +16,9 @@ import { buildAppArchive } from "./app-assets"
 import { verifyArtifact } from "./verify-artifact"
 import { NativeArch } from "../../../script/native-arch"
 
-const NODE_VERSION = "26.4.0"
+// Node 22 is the newest runtime that still launches on macOS 12.7 (Monterey): its binaries are
+// compiled with an 11.0 deployment target, while Node 24 and newer require macOS 13.5.
+const NODE_VERSION = "22.23.4"
 const dir = path.resolve(import.meta.dirname, "..")
 const outdir = path.resolve(
   dir,
@@ -27,6 +29,9 @@ if (outdir === path.join(dir, "dist-node")) {
   throw new Error("--outdir must not be dist-node because it contains temporary files")
 }
 const bundleOnly = process.argv.includes("--bundle-only")
+// A runtime layout ships the Node binary next to the bundle instead of embedding it in a SEA
+// executable. Node's SEA has no macOS x64 build, so the layout is the only way to ship Intel Macs.
+const runtimeLayout = process.argv.includes("--runtime-layout")
 const single = process.argv.includes("--single")
 const skipInstall = process.argv.includes("--skip-install")
 const appArchiveOnly = process.argv.includes("--app-archive-only")
@@ -56,18 +61,20 @@ if (appArchiveOnly) {
   process.exit(0)
 }
 if (targets.length === 0) {
-  if (requested === "darwin-x64") throw new Error("Node 26.4 SEA does not support macOS x64")
+  if (requested === "darwin-x64") throw new Error(`Unknown Node target: ${requested}`)
   throw new Error(`Unknown Node target: ${requested}`)
 }
-if (!bundleOnly && targets.some((target) => target.platform === "darwin" && target.arch === "x64")) {
-  throw new Error("Node 26.4 SEA does not support macOS x64")
+if (!bundleOnly && !runtimeLayout && targets.some((target) => target.platform === "darwin" && target.arch === "x64")) {
+  throw new Error("Node SEA does not support macOS x64; use --runtime-layout")
 }
 const appArchive = archivePath ? await Bun.file(archivePath).bytes() : await buildAppArchive(Script.channel)
 if (!bundleOnly) await rm(outdir, { recursive: true, force: true })
 const builder =
-  !bundleOnly || targets.some((target) => target.platform === process.platform && target.arch === process.arch)
-    ? await resolveHostNode()
-    : undefined
+  runtimeLayout
+    ? undefined
+    : !bundleOnly || targets.some((target) => target.platform === process.platform && target.arch === process.arch)
+      ? await resolveHostNode()
+      : undefined
 
 // Vite silently rewrites text imports of known asset types (.txt) to asset
 // URL strings when the raw-text plugin doesn't intercept them first — the
@@ -107,7 +114,7 @@ for (const target of targets) {
   if (bundleOnly) await verifyArtifact("dist-node/opencode.mjs")
 
   const host = target.platform === process.platform && target.arch === process.arch
-  if (host) {
+  if (host && !runtimeLayout) {
     if (!builder) throw new Error("Node SEA builder is unavailable")
     run(builder, [...nodeExecArgv, "dist-node/opencode.mjs", "--version"])
     run(builder, [...nodeExecArgv, "dist-node/opencode.mjs", "--help"])
@@ -117,6 +124,43 @@ for (const target of targets) {
   const name = `cli-node-${targetName(target)}`
   const binary = target.platform === "win32" ? "opencode2-node.exe" : "opencode2-node"
   const output = path.join(outdir, name, "bin", binary)
+  if (runtimeLayout) {
+    const runtime = path.join(outdir, name, "runtime")
+    await mkdir(runtime, { recursive: true })
+    const node = path.join(runtime, "node")
+    await copyFile(await resolveTargetNode(target), node)
+    if (target.platform !== "win32") await chmod(node, 0o755)
+    await copyFile(path.join(dir, "dist-node", "opencode.mjs"), path.join(runtime, "opencode.mjs"))
+    await cp(path.join(dir, "dist-node", "assets"), path.join(runtime, "assets"), { recursive: true })
+    await writeFile(
+      path.join(runtime, "opencode-cli.json"),
+      `${JSON.stringify({ argv: nodeExecArgv, version: Script.version }, null, 2)}\n`,
+    )
+    await NativeArch.verify(node, target.arch)
+    if (target.platform === "darwin" && process.platform === "darwin")
+      run("codesign", ["--force", "--sign", "-", node])
+    if (target.platform === "darwin" && process.platform !== "darwin") {
+      console.warn(`${node} must be signed on macOS before it can run`)
+    }
+    await writeFile(
+      path.join(outdir, name, "package.json"),
+      `${JSON.stringify(
+        {
+          name: `@opencode/${name}`,
+          version: Script.version,
+          license: pkg.license,
+          repository: { type: "git", url: "git+https://github.com/anomalyco/opencode.git" },
+          os: [target.platform],
+          cpu: [target.arch],
+        },
+        null,
+        2,
+      )}\n`,
+    )
+    await verifyArtifact(path.join(outdir, name))
+    if (host) await smokeRuntime(runtime)
+    continue
+  }
   if (!builder) throw new Error("Node SEA builder is unavailable")
   await mkdir(path.dirname(output), { recursive: true })
   const config = {
@@ -232,6 +276,18 @@ async function smoke(output: string) {
   if (process.platform !== "win32") await chmod(executable, 0o755)
   run(executable, ["--version"], root)
   run(executable, ["--help"], root)
+  await rm(root, { recursive: true, force: true })
+}
+
+async function smokeRuntime(runtime: string) {
+  const root = await mkdtemp(path.join(os.tmpdir(), "opencode-node-smoke-"))
+  const node = path.join(root, "node")
+  await copyFile(path.join(runtime, "node"), node)
+  await cp(path.join(runtime, "assets"), path.join(root, "assets"), { recursive: true })
+  await copyFile(path.join(runtime, "opencode.mjs"), path.join(root, "opencode.mjs"))
+  if (process.platform !== "win32") await chmod(node, 0o755)
+  run(node, [...nodeExecArgv, "opencode.mjs", "--version"], root)
+  run(node, [...nodeExecArgv, "opencode.mjs", "--help"], root)
   await rm(root, { recursive: true, force: true })
 }
 

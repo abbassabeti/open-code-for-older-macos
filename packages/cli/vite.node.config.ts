@@ -287,7 +287,8 @@ export function mainConfig(input: NodeBuildInput): UserConfig {
     ssr: { noExternal: true },
     build: {
       ssr: "src/node/index.ts",
-      target: "node26",
+      // Node 22 is the newest runtime that still runs on macOS 12.7 (Monterey).
+      target: "node22",
       outDir: "dist-node",
       emptyOutDir: false,
       minify: true,

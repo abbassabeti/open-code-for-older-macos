@@ -36,7 +36,9 @@ export const shellParserWasmAssets = {
   bash: "tree-sitter-bash/tree-sitter-bash.wasm",
   powershell: "tree-sitter-powershell/tree-sitter-powershell.wasm",
 } as const
-export const nodeExecArgv = ["--experimental-ffi", "--use-system-ca", "--disable-warning=ExperimentalWarning"] as const
+// Node 22 is the runtime floor for macOS 12.7 and has no --experimental-ffi; the FFI path uses the
+// ffi-rs native addon instead, so the flag is not needed to load the fff dylib.
+export const nodeExecArgv = ["--use-system-ca", "--disable-warning=ExperimentalWarning"] as const
 
 export const attentionSoundAssets = [
   "@opencode/ui/audio/bip-bop-01.mp3",

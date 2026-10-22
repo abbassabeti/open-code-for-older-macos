@@ -1,0 +1,8 @@
+timestamp=2026-10-22T11:57:49.898Z level=INFO run=0a37edbf message="cli starting" version=0.0.0-macos-12.7-202610221118 channel=macos-12.7 local=false args="[\"serve\",\"--service\"]" role=cli
+timestamp=2026-10-22T11:57:49.963Z level=INFO run=0a37edbf message="database schema bootstrap started" migrations=50 role=server
+timestamp=2026-10-22T11:57:49.981Z level=INFO run=0a37edbf message="database schema bootstrap completed" migrations=50 durationMs=18 role=server
+timestamp=2026-10-22T11:57:54.284Z level=INFO run=1a0ebb7c message="cli starting" version=0.0.0-macos-12.7-202610221118 channel=macos-12.7 local=false args="[\"serve\",\"--service\"]" role=cli
+timestamp=2026-10-22T11:58:04.301Z level=INFO run=c61ec24a message="cli starting" version=0.0.0-macos-12.7-202610221118 channel=macos-12.7 local=false args="[\"serve\",\"--service\"]" role=cli
+timestamp=2026-10-22T11:58:24.303Z level=INFO run=d727fad8 message="cli starting" version=0.0.0-macos-12.7-202610221118 channel=macos-12.7 local=false args="[\"serve\",\"--service\"]" role=cli
+timestamp=2026-10-22T11:58:54.335Z level=INFO run=812496e2 message="cli starting" version=0.0.0-macos-12.7-202610221118 channel=macos-12.7 local=false args="[\"serve\",\"--service\"]" role=cli
+timestamp=2026-10-22T11:59:24.345Z level=INFO run=b5029297 message="cli starting" version=0.0.0-macos-12.7-202610221118 channel=macos-12.7 local=false args="[\"serve\",\"--service\"]" role=cli

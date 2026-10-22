@@ -1,0 +1,49 @@
+[2026-10-22 13:59:47.190] [error] (renderer)   fatal renderer error {
+  error: 'Error: Desktop IPC handler failed\n' +
+    '    at ree (oc://renderer/assets/main-eFyTjpZ6.js:2:30347)\n' +
+    '    at Kt (oc://renderer/assets/main-eFyTjpZ6.js:2:30013)\n' +
+    '    at MessagePort.<anonymous> (oc://renderer/assets/main-eFyTjpZ6.js:2:28733)\n' +
+    '\n' +
+    '\n' +
+    '\n' +
+    '────────────────────────────────────────\n' +
+    'Caused by:\n' +
+    '{\n' +
+    '  "name": "UnknownError",\n' +
+    '  "message": "An error occurred in Effect.tryPromise",\n' +
+    '  "cause": {\n' +
+    '    "name": "Error",\n' +
+    '    "message": "Timed out waiting for the background service to start"\n' +
+    '  }\n' +
+    '}',
+  url: 'oc://renderer/index.html',
+  version: '0.0.0-prod-202610221120',
+  platform: 'desktop',
+  os: 'macos'
+}
+[2026-10-22 13:59:47.217] [info]               [desktop-onboarding] first launch onboarding evaluated [object Object]
+[2026-10-22 13:59:47.230] [info]               [desktop-onboarding] starting first launch draft [object Object]
+[2026-10-22 13:59:47.300] [error] (renderer)   fatal renderer error {
+  error: 'Error: Desktop IPC handler failed\n' +
+    '    at ree (oc://renderer/assets/main-eFyTjpZ6.js:2:30347)\n' +
+    '    at Kt (oc://renderer/assets/main-eFyTjpZ6.js:2:30013)\n' +
+    '    at MessagePort.<anonymous> (oc://renderer/assets/main-eFyTjpZ6.js:2:28733)\n' +
+    '\n' +
+    '\n' +
+    '\n' +
+    '────────────────────────────────────────\n' +
+    'Caused by:\n' +
+    '{\n' +
+    '  "name": "UnknownError",\n' +
+    '  "message": "An error occurred in Effect.tryPromise",\n' +
+    '  "cause": {\n' +
+    '    "name": "Error",\n' +
+    '    "message": "Timed out waiting for the background service to start"\n' +
+    '  }\n' +
+    '}',
+  url: 'oc://renderer/index.html',
+  version: '0.0.0-prod-202610221120',
+  platform: 'desktop',
+  os: 'macos'
+}
+[2026-10-22 13:59:47.335] [error]              Uncaught InvalidStateError: Failed to execute 'postMessage' on 'BroadcastChannel': Channel is closed

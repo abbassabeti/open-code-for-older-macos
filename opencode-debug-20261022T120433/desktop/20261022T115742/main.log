@@ -1,0 +1,55 @@
+[2026-10-22 13:57:42.730] [info]  (main) app starting {
+  version: '0.0.0-prod-202610221120',
+  packaged: true,
+  onboardingTest: false,
+  marks: {
+    entry: 1792670261179,
+    ready: 1792670261607,
+    window: 1792670261806,
+    served: 1792670262372,
+    bundle: 1792670262541,
+    onboarding: 1792670262672,
+    logging: 1792670262728
+  }
+}
+[2026-10-22 13:57:43.859] [info]  (main) [server] Loaded shell environment with -il (36 vars)
+[2026-10-22 13:57:43.868] [info]  (main) layers ready {
+  marks: {
+    entry: 1792670261179,
+    ready: 1792670261607,
+    window: 1792670261806,
+    served: 1792670262372,
+    bundle: 1792670262541,
+    onboarding: 1792670262672,
+    logging: 1792670262728,
+    storage: 1792670262872,
+    init: 1792670263863,
+    layers: 1792670263868
+  }
+}
+[2026-10-22 13:57:43.873] [info]  (main) main window visible {
+  window: 'f8116399-7768-4f5b-86c9-a6ee6c685940',
+  shownAt: 1792670261782
+}
+[2026-10-22 13:57:45.043] [info]  (main) starting v2 background service
+[2026-10-22 13:57:45.044] [info]  (main) v2 CLI executable resolved {
+  bundled: '/Applications/OpenCode.app/Contents/Resources/opencode-cli',
+  packaged: true
+}
+[2026-10-22 13:57:45.078] [info]  (main) v2 CLI version bundled { version: '0.0.0-macos-12.7-202610221118' }
+[2026-10-22 13:57:46.973] [info]  (main)       v2 CLI runtime staged {
+  path: '/Users/abbas/Library/Application Support/ai.opencode.desktop/cli/0.0.0-macos-12.7-202610221118-x64/opencode-cli',
+  version: '0.0.0-macos-12.7-202610221118'
+}
+[2026-10-22 13:57:47.194] [info]  (main)       auto updater configured {
+  channel: 'latest',
+  allowPrerelease: false,
+  allowDowngrade: true,
+  currentVersion: '0.0.0-prod-202610221120'
+}
+[2026-10-22 13:57:47.196] [info]  (main)       updater state changed { from: 'idle', to: 'checking' }
+[2026-10-22 13:57:47.197] [info]  (main)       Checking for update {}
+[2026-10-22 13:57:47.230] [info]  (main)       v2 CLI background service starting { reason: 'missing' }
+[2026-10-22 13:57:47.232] [error] (main)       Error: Error: ENOENT: no such file or directory, open '/Applications/OpenCode.app/Contents/Resources/app-update.yml' {}
+[2026-10-22 13:57:47.233] [info]  (main)       updater state changed { from: 'checking', to: 'error' }
+[2026-10-22 14:04:33.753] [info]  (main)       exporting debug logs { output: '/Users/abbas/Downloads/opencode-debug-20261022T120433.zip' }

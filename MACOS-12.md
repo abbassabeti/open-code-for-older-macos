@@ -12,6 +12,7 @@ so four upstream components had to change.
 | fff search library | `@ff-labs/fff-bin-*` prebuilt dylib (macOS 13.0) | rebuilt from source with `MACOSX_DEPLOYMENT_TARGET=12.0` | The published dylib refuses to load on 12.7. |
 | TUI native library | `@opentui/core-*` prebuilt dylib (macOS 13.0) | rebuilt from the v0.6.6 tag with Zig 0.16.0 | The published dylib refuses to load on 12.7. The TUI still cannot start there, for a different reason: see the known limits. |
 | App bundle | no floor | `LSMinimumSystemVersion` 12.0 | Keeps the app from launching on systems it cannot run on. |
+| CLI channel | branch name (`dev` on CI) | `latest` | The channel picks the service registration file. The desktop client always reads `service.json`, so a CLI built with a custom channel registers elsewhere and the app never finds its own service. |
 
 Two smaller changes come with the Node runtime:
 

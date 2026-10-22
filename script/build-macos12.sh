@@ -37,6 +37,12 @@ fi
 
 cd "${ROOT}"
 
+# The CLI's channel decides which service registration file it writes, and the desktop client always
+# reads service.json. Without an explicit version the channel falls back to the branch name, so the
+# CLI registers under service-<branch>.json and the desktop never finds the service. A real version
+# pins the channel to "latest", the way an upstream release build does it.
+export OPENCODE_VERSION="$(bun -p "require('./package.json').version")-macos12.7"
+
 # The published fff dylib needs macOS 13, so the fork compiles its own.
 ./script/build-fff-macos12.sh "${ARCH}"
 

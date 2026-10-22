@@ -1,0 +1,6 @@
+[2026-10-22 13:57:45.553] [info]  (onboarding) first launch onboarding pending checked { pending: true }
+[2026-10-22 13:59:47.223] [info]  (onboarding) first launch onboarding pending checked { pending: true }
+[2026-10-22 13:59:47.225] [info]  (onboarding) first launch onboarding completed {
+  createDefaultProject: true,
+  defaultProject: '/Users/abbas/Documents/Default Project'
+}
